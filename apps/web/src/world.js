@@ -23,12 +23,22 @@ function rounded(ctx, x, y, w, h, r, color) { ctx.fillStyle = color; ctx.beginPa
 
 function drawGround(ctx) {
   box(ctx, 0, 0, WORLD.width, WORLD.height, colors.grass);
-  for (let y = 0; y < WORLD.height; y += 32) for (let x = 0; x < WORLD.width; x += 32) {
-    const index = ((x / 32) * 7 + (y / 32) * 11) % 9;
-    const color = index === 0 ? '#4d7a57' : index === 3 ? '#416d53' : '#477454';
-    tile(ctx, x, y, color);
-    if (index === 4) { box(ctx, x + 7, y + 11, 2, 2, '#8ba66c'); box(ctx, x + 22, y + 25, 2, 2, '#355e49'); }
+  // Irregular grass flecks replace the prototype's heavy checkerboard.
+  for (let i=0;i<190;i++) {
+    const seed=i*7919+17;
+    const x=(seed*37)%WORLD.width;
+    const y=(seed*61)%WORLD.height;
+    const size=2+(seed%4);
+    const shade=seed%5===0?'#7c9a63':seed%3===0?'#3d694e':'#56805a';
+    box(ctx,x,y,size,size>3?2:1,shade);
+    if(i%7===0)box(ctx,x+size+1,y-1,2,2,'#96ab6c');
   }
+  // Quiet, translucent foliage shadows give the lawn more depth.
+  ctx.globalAlpha=.14;
+  [[108,181,88,28],[812,332,95,32],[138,488,106,26],[704,522,118,23]].forEach(([x,y,w,h])=>{
+    ctx.fillStyle='#203d37';ctx.beginPath();ctx.ellipse(x,y,w/2,h/2,0,0,Math.PI*2);ctx.fill();
+  });
+  ctx.globalAlpha=1;
   // Main plaza path with a softly bordered cross layout.
   rounded(ctx, 185, 210, 590, 255, 15, '#44624f');
   rounded(ctx, 192, 217, 576, 241, 13, colors.pathDark);
@@ -127,25 +137,95 @@ export const OBSTACLES = [
 
 function drawAvatar(ctx, actor, time, isPlayer=false) {
   const {x,y,color='#dc8d76',accent='#b9e5be',name='',emo=''}=actor;
-  const bob = actor.moving ? Math.round(Math.sin(time/55)*2) : Math.round(Math.sin(time/280)*1);
-  // shadow
-  ctx.fillStyle='#203a346c';ctx.beginPath();ctx.ellipse(x,y+6,12,5,0,0,Math.PI*2);ctx.fill();
-  // feet
-  box(ctx,x-7,y+3+bob,5,5,'#61483e');box(ctx,x+2,y+3-bob,5,5,'#61483e');
-  // body
-  box(ctx,x-9,y-8+bob,18,13,accent);box(ctx,x-11,y-6+bob,3,8,accent);box(ctx,x+8,y-6+bob,3,8,accent);
-  // neck and face
-  box(ctx,x-4,y-14+bob,8,5,'#e9bd97');box(ctx,x-8,y-23+bob,16,12,color);box(ctx,x-7,y-24+bob,14,4,'#583f3c');
-  box(ctx,x-5,y-18+bob,2,2,'#433a37');box(ctx,x+3,y-18+bob,2,2,'#433a37');
-  box(ctx,x-2,y-13+bob,4,1,'#b96e68');
-  if (isPlayer) { box(ctx,x-10,y-26+bob,20,3,'#f2c875');box(ctx,x-7,y-28+bob,14,3,'#f2c875'); }
-  if (name) {
-    ctx.font='600 8px "DM Sans", sans-serif';ctx.textAlign='center';
-    const width=ctx.measureText(name).width+12;
-    rounded(ctx,x-width/2,y-44+bob,width,14,5,'#182a25dd');
-    ctx.fillStyle='#e7f2e8';ctx.fillText(name,x,y-34+bob);
+  const phase=Math.floor(time/125)%4;
+  const gait=actor.moving?[0,2,0,-2][phase]:0;
+  const idle=Math.round(Math.sin(time/310+(actor.phase||0))*.8);
+  const dance=actor.dancingUntil>time;
+  const wave=actor.wavingUntil>time;
+  const sway=dance?Math.round(Math.sin(time/90)*2):0;
+  const bob=actor.moving?[0,-1,0,1][phase]:idle;
+  const skin=actor.color||'#dc8d76';
+  const hair=actor.hair||'#51404a';
+  const shirt=actor.accent||'#b9e5be';
+  const pants=actor.pants||'#526477';
+  const outline='#493d3b';
+  const facing=actor.facing||'down';
+  const eyeShift=facing==='left'?-2:facing==='right'?2:0;
+
+  ctx.save();
+  ctx.translate(sway,0);
+  // Ground shadow softly breathes with the idle/walk cycle.
+  ctx.fillStyle='#203a3480';ctx.beginPath();ctx.ellipse(x,y+5,actor.moving?11:12,4,0,0,Math.PI*2);ctx.fill();
+
+  // Shoes and two independently animated legs.
+  const leftStep=actor.moving?gait:0;
+  const rightStep=actor.moving?-gait:0;
+  box(ctx,x-7,y-3+leftStep,5,8,pants);box(ctx,x+2,y-3+rightStep,5,8,pants);
+  box(ctx,x-8,y+3+leftStep,7,4,'#f0dfc8');box(ctx,x+1,y+3+rightStep,7,4,'#f0dfc8');
+  box(ctx,x-8,y+5+leftStep,7,2,'#9b745d');box(ctx,x+1,y+5+rightStep,7,2,'#9b745d');
+
+  // Neck, jacket silhouette, sleeves, and small stitched highlights.
+  box(ctx,x-4,y-22+bob,8,7,'#bd8874');
+  box(ctx,x-10,y-19+bob,20,18,outline);
+  box(ctx,x-8,y-18+bob,16,15,shirt);
+  box(ctx,x-12,y-17+bob,5,10,outline);box(ctx,x+7,y-17+bob,5,10,outline);
+  box(ctx,x-11,y-16+bob,4,8,shirt);box(ctx,x+7,y-16+bob,4,8,shirt);
+  box(ctx,x-12,y-9+bob,4,4,skin);box(ctx,x+8,y-9+bob,4,4,skin);
+  box(ctx,x-7,y-17+bob,4,3,'#ffffff3d');box(ctx,x+3,y-17+bob,3,2,'#ffffff35');
+  box(ctx,x-7,y-5+bob,14,2,'#344f48');
+  box(ctx,x-2,y-14+bob,2,2,'#f4e4bd');box(ctx,x-2,y-9+bob,2,2,'#f4e4bd');
+
+  // Head with ears, layered hair, expressive eyes, blush, and an individual part.
+  box(ctx,x-10,y-39+bob,20,17,outline);
+  box(ctx,x-9,y-38+bob,18,15,skin);
+  box(ctx,x-12,y-33+bob,3,5,skin);box(ctx,x+9,y-33+bob,3,5,skin);
+  box(ctx,x-10,y-40+bob,20,6,hair);
+  box(ctx,x-12,y-38+bob,4,9,hair);box(ctx,x+8,y-38+bob,4,7,hair);
+  box(ctx,x-8,y-41+bob,13,3,actor.hairHighlight||'#806275');
+  box(ctx,x-7+eyeShift,y-31+bob,3,3,'#382f35');
+  box(ctx,x+4+eyeShift,y-31+bob,3,3,'#382f35');
+  box(ctx,x-6+eyeShift,y-31+bob,1,1,'#fff1dc');box(ctx,x+5+eyeShift,y-31+bob,1,1,'#fff1dc');
+  box(ctx,x-7,y-26+bob,3,1,'#d88883');box(ctx,x+5,y-26+bob,3,1,'#d88883');
+  box(ctx,x-2,y-24+bob,4,1,'#a75e62');
+  // Player signature headband; residents get small, distinct hair clips.
+  if(isPlayer){
+    box(ctx,x-10,y-38+bob,20,3,'#f1c96d');box(ctx,x+4,y-38+bob,5,3,'#fff0a6');
+    box(ctx,x-2,y-37+bob,4,2,'#fff0a6');
+  } else {
+    box(ctx,x+5,y-37+bob,3,3,actor.clip||'#f2cc78');
   }
-  if(emo){rounded(ctx,x+12,y-40+bob,22,21,8,'#f0dfbdec');ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText(emo,x+23,y-25+bob);}
+
+  // Four-frame walk cycle swings arms; emotes lift an arm instead.
+  if(wave){
+    box(ctx,x-13,y-20+bob,4,10,shirt);box(ctx,x-16,y-25+bob,4,7,skin);
+    box(ctx,x-17,y-27+bob,5,2,'#fff0d7');
+  } else if(dance) {
+    const lift=Math.round(Math.sin(time/100)*2);
+    box(ctx,x-14,y-23+bob+lift,4,9,shirt);box(ctx,x-16,y-27+bob+lift,4,5,skin);
+    box(ctx,x+10,y-22+bob-lift,4,9,shirt);box(ctx,x+12,y-26+bob-lift,4,5,skin);
+  } else {
+    box(ctx,x-12,y-17+bob+gait,4,9,shirt);box(ctx,x+8,y-17+bob-gait,4,9,shirt);
+    box(ctx,x-12,y-9+bob+gait,4,4,skin);box(ctx,x+8,y-9+bob-gait,4,4,skin);
+  }
+
+  if(dance){
+    const sparkle=(Math.floor(time/160)%2)===0?'✦':'·';
+    ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillStyle='#ffe28a';
+    ctx.fillText(sparkle,x+18,y-36+bob);
+  }
+  if(name){
+    ctx.font='600 10px system-ui, sans-serif';ctx.textAlign='center';
+    const width=ctx.measureText(name).width+14;
+    rounded(ctx,x-width/2,y-57+bob,width,16,5,'#182a25ed');
+    box(ctx,x-width/2+5,y-53+bob,3,3,isPlayer?'#f1c96d':'#9fe0b5');
+    ctx.fillStyle='#e7f2e8';ctx.fillText(name,x+2,y-45+bob);
+  }
+  if(emo){
+    rounded(ctx,x+13,y-52+bob,27,24,8,'#f8efd8');
+    box(ctx,x+15,y-32+bob,5,4,'#f8efd8');
+    ctx.font='15px sans-serif';ctx.textAlign='center';ctx.fillText(emo,x+27,y-35+bob);
+  }
+  ctx.restore();
 }
 
 function drawFlower(ctx,x,y,index){
@@ -153,8 +233,15 @@ function drawFlower(ctx,x,y,index){
   box(ctx,x,y,2,6,'#55885c');box(ctx,x-2,y-2,3,3,petal);box(ctx,x+2,y-2,3,3,petal);box(ctx,x,y-4,3,3,petal);box(ctx,x,y,2,2,'#e7b96e');
 }
 
-export function renderWorld(ctx, time, player, residents, effects=[]) {
+export function renderWorld(ctx, time, player, residents, zoom=1) {
   ctx.clearRect(0,0,WORLD.width,WORLD.height);
+  if(zoom>1){
+    ctx.save();
+    ctx.beginPath();ctx.rect(0,0,WORLD.width,WORLD.height);ctx.clip();
+    ctx.translate(WORLD.width/2,WORLD.height/2);
+    ctx.scale(zoom,zoom);
+    ctx.translate(-player.x,-player.y);
+  }
   drawGround(ctx);
   drawBuilding(ctx,43,44,183,108,{wall:'#d9b883',roof:'#b66e55',sign:'#f2d9aa',label:'KAFE LUNA',windows:2});
   drawBuilding(ctx,704,47,181,109,{wall:'#b6c89b',roof:'#6c8c68',sign:'#e9d8ac',label:'ÇİÇEKÇİ',windows:2});
@@ -170,8 +257,8 @@ export function renderWorld(ctx, time, player, residents, effects=[]) {
   // Sorted draw order gives simple depth.
   const actors=[...residents.map((a)=>({...a,isPlayer:false})),{...player,name:'Sezer',isPlayer:true}].sort((a,b)=>a.y-b.y);
   actors.forEach((actor)=>drawAvatar(ctx,actor,time,actor.isPlayer));
-  effects.forEach((effect)=>drawAvatar(ctx,{...effect.actor,emo:effect.emoji},time,false));
   // foreground stepping flowers and decorative stones
   ctx.fillStyle='#d4bc8b';ctx.beginPath();ctx.ellipse(226,470,14,5,-.1,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#d4bc8b';ctx.beginPath();ctx.ellipse(666,186,13,4,.2,0,Math.PI*2);ctx.fill();
+  if(zoom>1)ctx.restore();
 }

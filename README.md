@@ -4,7 +4,7 @@ PixelGen is an original, cozy social browser world inspired by the feeling of cl
 
 ## Current milestone: playable plaza prototype
 
-The first increment is a dependency-free browser client with a hand-built pixel-art plaza. You can walk around with **WASD / arrow keys**, click a destination, greet the demo residents, use an emote, and send local demo chat messages. The plaza currently runs locally in one browser; accounts, persistence, and network multiplayer are future milestones and are not represented as working features yet.
+The first increment is a dependency-free browser client with a hand-built pixel-art plaza. It includes a manual **light/dark theme switch** (saved on the device), responsive mobile camera zoom, keyboard/click movement, a four-step walk cycle, idle breathing, wave/dance poses, demo residents, emotes, and local demo chat. The plaza currently runs locally in one browser; accounts, persistence, and network multiplayer are future milestones and are not represented as working features yet. The scene and sprites are still prototype art, not the final production asset pack.
 
 ## Run locally
 

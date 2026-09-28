@@ -4,16 +4,14 @@ import { OBSTACLES, renderWorld } from './world.js';
 const canvas = document.querySelector('#game-canvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
-const player = { x: 476, y: 425, color: '#e1a879', accent: '#9dddb9', speed: 148, radius: 9, moving: false };
+const player = { x: 476, y: 425, color: '#e1a879', accent: '#9dddb9', hair:'#4b3548', hairHighlight:'#a17678', pants:'#4a6470', speed: 148, radius: 9, moving: false, facing:'down', phase:0 };
 const residents = [
-  { id:'mina',name:'Mina',x:325,y:333,color:'#d88e78',accent:'#e5c675',line:'Kafenin kahvesi çok güzel ☕',outfit:'Sarı kazak' },
-  { id:'atlas',name:'Atlas',x:586,y:350,color:'#9d735f',accent:'#95c3dc',line:'Meydanda buluşalım dediler!',outfit:'Mavi ceket' },
-  { id:'lila',name:'Lila',x:399,y:443,color:'#d89b8a',accent:'#c4a3db',line:'Birazdan sahile geçeceğim ✨',outfit:'Lila hırka' },
-  { id:'kaan',name:'Kaan',x:633,y:257,color:'#b8835d',accent:'#de8e6f',line:'Selam! Bu meydan çok tatlı.',outfit:'Mercan tişört' }
+  { id:'mina',name:'Mina',x:325,y:333,color:'#d88e78',accent:'#e5c675',hair:'#553d32',hairHighlight:'#a36b4d',pants:'#6c7660',line:'Kafenin kahvesi çok güzel ☕',outfit:'Sarı kazak',phase:.4 },
+  { id:'atlas',name:'Atlas',x:586,y:350,color:'#9d735f',accent:'#95c3dc',hair:'#433a3a',hairHighlight:'#746565',pants:'#4e6577',line:'Meydanda buluşalım dediler!',outfit:'Mavi ceket',phase:1.5 },
+  { id:'lila',name:'Lila',x:399,y:443,color:'#d89b8a',accent:'#c4a3db',hair:'#48394e',hairHighlight:'#9d79a5',pants:'#665476',line:'Birazdan sahile geçeceğim ✨',outfit:'Lila hırka',phase:2.2 },
+  { id:'kaan',name:'Kaan',x:633,y:257,color:'#b8835d',accent:'#de8e6f',hair:'#513d31',hairHighlight:'#9e7049',pants:'#56665c',line:'Selam! Bu meydan çok tatlı.',outfit:'Mercan tişört',phase:2.8 }
 ];
 const keys = new Set();
-const effects = [];
-const names = ['Mina','Atlas','Lila','Kaan'];
 const palette = { Mina:['#d88e78','#e5c675'], Atlas:['#9d735f','#95c3dc'], Lila:['#d89b8a','#c4a3db'], Kaan:['#b8835d','#de8e6f'], Sezer:['#e1a879','#9dddb9'] };
 const chatMessages = document.querySelector('#chat-messages');
 const nearbyList = document.querySelector('#nearby-list');
@@ -24,6 +22,23 @@ let toastTimer;
 let nextResidentLine = 0;
 let moveTarget = null;
 let hasMoved = false;
+
+const themeToggle=document.querySelector('#theme-toggle');
+function applyTheme(theme,persist=false){
+  const next=theme==='light'?'light':'dark';
+  document.documentElement.dataset.theme=next;
+  const light=next==='light';
+  document.querySelector('#theme-icon').textContent=light?'🌙':'☀️';
+  themeToggle.setAttribute('aria-label',light?'Koyu temaya geç':'Açık temaya geç');
+  themeToggle.title=light?'Açık tema · koyu temaya geç':'Koyu tema · açık temaya geç';
+  themeToggle.setAttribute('aria-pressed',String(light));
+  if(persist){try{localStorage.setItem('pixelgen-theme',next);}catch{}}
+}
+let savedTheme=null;
+try{savedTheme=localStorage.getItem('pixelgen-theme');}catch{}
+const previewTheme=new URLSearchParams(location.search).get('theme');
+applyTheme(previewTheme||savedTheme||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+themeToggle.addEventListener('click',()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light',true));
 
 const starterMessages = [
   {name:'Mina',text:'Meydan bugün çok huzurlu 🌿',time:'şimdi'},
@@ -71,7 +86,10 @@ function showToast(message) {
   toastTimer=setTimeout(()=>toast.classList.remove('show'),2100);
 }
 function addEmote(emoji,actor=player) {
-  const effect={actor:{...actor},emoji,until:performance.now()+1400};effects.push(effect);
+  const now=performance.now();
+  actor.emo=emoji;actor.emoteUntil=now+1400;
+  if(emoji==='👋')actor.wavingUntil=now+1100;
+  if(emoji==='💃')actor.dancingUntil=now+1500;
   const pop=document.querySelector('#emote-pop');const node=document.createElement('span');node.className='floating-emote';node.textContent=emoji;
   node.style.left=`${Math.max(8,Math.min(92,actor.x/WORLD.width*100))}%`;node.style.top=`${Math.max(7,Math.min(82,actor.y/WORLD.height*100))}%`;pop.append(node);
   setTimeout(()=>node.remove(),1550);
@@ -106,18 +124,21 @@ function update(dt) {
     else{input.right=dx>6;input.left=dx< -6;input.down=dy>6;input.up=dy< -6;}
   }
   const wasMoving=player.moving;
+  if(input.left)player.facing='left';else if(input.right)player.facing='right';else if(input.up)player.facing='up';else if(input.down)player.facing='down';
   Object.assign(player,movePlayer(player,input,dt,OBSTACLES));
+  player.emo=performance.now()<player.emoteUntil?player.emo:'';
   if(player.moving&&!wasMoving&&!hasMoved){hasMoved=true;document.querySelector('#world-hint').style.opacity='0';}
   if(player.moving)moveTarget=null;
   residents.forEach((person,index)=>{
     person.emo=performance.now()<person.emoteUntil?person.emote:'';
     if(performance.now()>person.nextMove){person.nextMove=performance.now()+2800+index*900;person.targetX=person.x+(Math.random()-.5)*24;person.targetY=person.y+(Math.random()-.5)*16;}
-    if(person.targetX!=null){const dx=person.targetX-person.x,dy=person.targetY-person.y,dist=Math.hypot(dx,dy);if(dist>1){person.x+=dx/dist*.13;person.y+=dy/dist*.13;}else{person.targetX=null;}}
+    if(person.targetX!=null){const dx=person.targetX-person.x,dy=person.targetY-person.y,dist=Math.hypot(dx,dy);if(dist>1){person.moving=true;person.facing=Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');person.x+=dx/dist*.13;person.y+=dy/dist*.13;}else{person.moving=false;person.targetX=null;}}
   });
 }
 function frame(now) {
-  const dt=Math.min((now-lastTime)/1000,.05);lastTime=now;update(dt);renderWorld(ctx,now,player,residents,effects);
-  while(effects.length&&effects[0].until<now)effects.shift();
+  const dt=Math.min((now-lastTime)/1000,.05);lastTime=now;update(dt);
+  const zoom=window.matchMedia('(max-width: 700px)').matches?1.28:1;
+  renderWorld(ctx,now,player,residents,zoom);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -135,9 +156,12 @@ window.addEventListener('blur',()=>keys.clear());
 
 canvas.addEventListener('pointerdown',(event)=>{
   const rect=canvas.getBoundingClientRect();const x=(event.clientX-rect.left)/rect.width*WORLD.width;const y=(event.clientY-rect.top)/rect.height*WORLD.height;
-  const hit=[...residents].reverse().find((person)=>Math.abs(person.x-x)<20&&Math.abs(person.y-12-y)<28);
+  const zoom=window.matchMedia('(max-width: 700px)').matches?1.28:1;
+  const worldX=zoom>1?player.x+(x-WORLD.width/2)/zoom:x;
+  const worldY=zoom>1?player.y+(y-WORLD.height/2)/zoom:y;
+  const hit=[...residents].reverse().find((person)=>Math.abs(person.x-worldX)<20&&Math.abs(person.y-12-worldY)<28);
   if(hit){greet(hit);return;}
-  moveTarget={x,y};
+  moveTarget={x:worldX,y:worldY};
 });
 
 document.querySelectorAll('[data-emote]').forEach((button)=>button.addEventListener('click',()=>{
