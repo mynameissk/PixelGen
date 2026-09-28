@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#111b24" />
+  <meta name="description" content="PixelGen — kendi dünyanı keşfet, arkadaşlarınla buluş." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>PixelGen — Meydan</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#world" aria-label="PixelGen ana sayfa">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span class="brand-word">pixel<span>gen</span></span>
+      </a>
+      <nav class="top-nav" aria-label="Ana menü">
+        <button class="top-link active" type="button" data-section="Dünya">Dünya</button>
+        <button class="top-link" type="button" data-section="Arkadaşlar">Arkadaşlar <span class="nav-count">2</span></button>
+        <button class="top-link" type="button" data-section="Dolabım">Dolabım</button>
+      </nav>
+      <div class="top-actions">
+        <button class="icon-button" type="button" aria-label="Bildirimler" id="notifications-button"><span class="bell-icon">♧</span><i></i></button>
+        <button class="wallet" type="button" id="wallet-button"><span class="coin-icon">✦</span><span id="coin-count">1.250</span><span class="wallet-plus">+</span></button>
+        <button class="profile-mini" type="button" aria-label="Profil ayarları"><span class="mini-avatar">S</span><span class="online-dot"></span></button>
+      </div>
+    </header>
+
+    <main class="workspace" id="world">
+      <aside class="left-rail">
+        <div class="rail-heading"><span class="eyebrow">KEŞFET</span><button class="dots" aria-label="Menü">···</button></div>
+        <button class="world-link selected" type="button"><span class="link-icon icon-world">◈</span><span>Meydan</span><span class="live-pill"><i></i> 24</span></button>
+        <button class="world-link" type="button" data-section="Sahil"><span class="link-icon icon-beach">≈</span><span>Sahil</span><span class="lock">↗</span></button>
+        <button class="world-link" type="button" data-section="Kafe"><span class="link-icon icon-cafe">▧</span><span>Kafe</span><span class="lock">↗</span></button>
+        <button class="world-link" type="button" data-section="Park"><span class="link-icon icon-park">♧</span><span>Park</span><span class="lock">↗</span></button>
+        <div class="rail-divider"></div>
+        <div class="rail-heading"><span class="eyebrow">SOSYAL</span><button class="dots" aria-label="Sosyal menü">···</button></div>
+        <button class="world-link" type="button" data-section="Arkadaşlar"><span class="link-icon icon-friends">♡</span><span>Arkadaşlar</span><span class="tiny-count">2</span></button>
+        <button class="world-link" type="button" data-section="Mesajlar"><span class="link-icon icon-messages">✉</span><span>Mesajlar</span></button>
+        <button class="world-link" type="button" data-section="Görevler"><span class="link-icon icon-quests">✧</span><span>Görevler</span><span class="new-badge">YENİ</span></button>
+        <section class="quest-card" aria-label="Günlük görev">
+          <div class="quest-top"><span class="quest-star">✦</span><span class="eyebrow">GÜNLÜK GÖREV</span><span class="quest-dots">···</span></div>
+          <h2>Biraz sosyalleş</h2>
+          <p>Meydanda 3 kişiye selam ver.</p>
+          <div class="quest-progress"><span></span></div>
+          <div class="quest-foot"><span>1 / 3 tamamlandı</span><b>+75 <span class="coin-icon">✦</span></b></div>
+        </section>
+        <div class="rail-spacer"></div>
+        <div class="rail-profile">
+          <div class="profile-avatar">S<span class="online-dot"></span></div>
+          <div class="profile-copy"><strong>Sezer</strong><span>Seviye 4 <i>·</i> Gezgin</span></div>
+          <button class="dots" aria-label="Profil seçenekleri">···</button>
+        </div>
+      </aside>
+
+      <section class="world-column" aria-label="Oyun dünyası">
+        <div class="world-toolbar">
+          <div class="location-title"><div class="location-icon">⌖</div><div><p class="eyebrow">PIXELGEN ŞEHRİ</p><h1>Meydan <span class="weather">☼ 22°</span></h1></div></div>
+          <div class="world-toolbar-actions">
+            <div class="population"><span class="pulse-dot"></span><strong>24</strong><span>oyuncu burada</span></div>
+            <button class="square-button" id="map-button" type="button" aria-label="Haritayı aç">▦</button>
+            <button class="square-button" id="fullscreen-button" type="button" aria-label="Tam ekran">⛶</button>
+          </div>
+        </div>
+        <div class="game-frame">
+          <canvas id="game-canvas" width="960" height="600" aria-label="PixelGen Meydan oyun alanı"></canvas>
+          <div class="scene-vignette" aria-hidden="true"></div>
+          <div class="scene-chip"><span class="sparkle">✦</span> BUGÜN GÜZEL BİR GÜN</div>
+          <div class="world-hint" id="world-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>hareket et</span><i>·</i><span>veya tıklayarak yürü</span></div>
+          <div class="emote-pop" id="emote-pop" aria-live="polite"></div>
+          <div class="scene-toast" id="scene-toast" role="status" aria-live="polite"></div>
+        </div>
+        <div class="game-actions">
+          <div class="action-note"><span class="tiny-spark">✦</span><span>Birine yaklaş ve <kbd>E</kbd> ile etkileşime geç</span></div>
+          <div class="action-buttons">
+            <button class="emote-button" type="button" data-emote="👋" aria-label="Selam ver"><span>👋</span></button>
+            <button class="emote-button" type="button" data-emote="💃" aria-label="Dans et"><span>💃</span></button>
+            <button class="emote-button" type="button" data-emote="✨" aria-label="Neşelen"><span>✨</span></button>
+            <button class="primary-action" id="greet-button" type="button"><span>＋</span> Selam ver</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="right-rail">
+        <section class="friends-panel">
+          <div class="panel-title"><div><h2>Yakındakiler</h2><span class="subtle">Meydanda seninle</span></div><button class="dots" aria-label="Yakındakiler menüsü">···</button></div>
+          <div class="nearby-list" id="nearby-list"></div>
+          <button class="text-action" id="all-players-button" type="button">Tüm oyuncuları gör <span>→</span></button>
+        </section>
+        <div class="panel-divider"></div>
+        <section class="chat-panel">
+          <div class="panel-title"><div><h2>Meydan sohbeti</h2><span class="chat-status"><i></i> Herkes görebilir</span></div><button class="square-button small" id="chat-menu-button" type="button" aria-label="Sohbet seçenekleri">···</button></div>
+          <div class="chat-messages" id="chat-messages" aria-live="polite" aria-label="Sohbet mesajları"></div>
+          <form class="chat-form" id="chat-form">
+            <label class="sr-only" for="chat-input">Sohbet mesajı</label>
+            <input id="chat-input" name="message" maxlength="160" autocomplete="off" placeholder="Bir şeyler yaz..." />
+            <button type="submit" aria-label="Mesajı gönder">↑</button>
+          </form>
+          <p class="chat-footnote"><span>↵</span> göndermek için enter'a bas</p>
+        </section>
+        <div class="right-tip"><span class="tip-icon">✦</span><div><strong>Yeni yüzler, yeni hikâyeler.</strong><p>Bir oyuncuya tıkla ve tanış.</p></div></div>
+      </aside>
+    </main>
+    <footer class="statusbar"><span><i class="status-dot"></i> Bağlantı: demo modu</span><span>PixelGen <b>v0.1</b></span><span><button type="button" id="help-button">Yardım &amp; kontroller</button></span></footer>
+    <div class="mobile-tabs" aria-label="Mobil menü"><button class="active" data-mobile="Dünya" type="button">◈<span>Dünya</span></button><button data-mobile="Arkadaşlar" type="button">♡<span>Arkadaşlar</span></button><button data-mobile="Sohbet" type="button">✉<span>Sohbet</span></button><button data-mobile="Profil" type="button">●<span>Profil</span></button></div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
