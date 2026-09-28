@@ -13,8 +13,26 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="#world" aria-label="PixelGen ana sayfa">
-        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-        <span class="brand-word">pixel<span>gen</span></span>
+        <svg class="brand-gem" viewBox="0 0 48 48" aria-hidden="true">
+          <defs>
+            <linearGradient id="gem-a" x1="5" y1="5" x2="43" y2="42" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#9DFFF0" />
+              <stop offset=".48" stop-color="#69D9FF" />
+              <stop offset="1" stop-color="#BE8CFF" />
+            </linearGradient>
+            <linearGradient id="gem-b" x1="10" y1="10" x2="31" y2="38" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#FFFFFF" stop-opacity=".9" />
+              <stop offset="1" stop-color="#93FFF2" stop-opacity=".15" />
+            </linearGradient>
+          </defs>
+          <path d="M13 4h22l10 12-21 28L3 16 13 4Z" fill="url(#gem-a)" />
+          <path d="M13 4 9 16h15V4H13Z" fill="url(#gem-b)" />
+          <path d="m9 16 15 28V16H9Z" fill="#75E8E9" fill-opacity=".72" />
+          <path d="M24 16h21L24 44V16Z" fill="#9277FF" fill-opacity=".62" />
+          <path d="m13 4-4 12h30L35 4H13Z" fill="#D3FFF6" fill-opacity=".3" />
+          <circle cx="39" cy="8" r="2" fill="#FFF0AE" />
+        </svg>
+        <span class="brand-word">PIXEL<span>GEN</span></span>
       </a>
       <nav class="top-nav" aria-label="Ana menü">
         <button class="top-link active" type="button" data-section="Dünya">Dünya</button>
@@ -80,6 +98,7 @@
           <div class="action-buttons">
             <button class="emote-button" type="button" data-emote="👋" aria-label="Selam ver"><span>👋</span></button>
             <button class="emote-button" type="button" data-emote="💃" aria-label="Dans et"><span>💃</span></button>
+            <button class="emote-button" type="button" data-emote="🪑" aria-label="Otur"><span>🪑</span></button>
             <button class="emote-button" type="button" data-emote="✨" aria-label="Neşelen"><span>✨</span></button>
             <button class="primary-action" id="greet-button" type="button"><span>＋</span> Selam ver</button>
           </div>

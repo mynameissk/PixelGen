@@ -4,7 +4,7 @@ PixelGen is an original, cozy social browser world inspired by the feeling of cl
 
 ## Current milestone: playable plaza prototype
 
-The first increment is a dependency-free browser client with a hand-built pixel-art plaza. It includes a manual **light/dark theme switch** (saved on the device), responsive mobile camera zoom, keyboard/click movement, a four-step walk cycle, idle breathing, wave/dance poses, demo residents, emotes, and local demo chat. The plaza currently runs locally in one browser; accounts, persistence, and network multiplayer are future milestones and are not represented as working features yet. The scene and sprites are still prototype art, not the final production asset pack.
+The current increment is a dependency-free browser client with an original **Canvas 2.5D isometric neon plaza** (not full 3D). It includes a manual **light/dark theme switch** (saved on the device), responsive camera, keyboard/click movement, shaded building materials, animated fountain/water and light motes, smooth idle/walk/wave/dance/sit/cheer character states, demo residents, emotes, and local demo chat. Page-entry reveals, subtle cursor parallax, neon hover responses, and UI micro-interactions are included. The plaza currently runs locally in one browser; accounts, persistence, and network multiplayer are future milestones. The scene and characters are still prototype-generated artwork, not a finished production asset pack.
 
 ## Run locally
 
